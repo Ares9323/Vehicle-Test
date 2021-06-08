@@ -35,7 +35,7 @@ void AGoKart::Tick(float DeltaTime)
 	//Space = Velocity * Time
 	FVector Translation = Velocity * 100 * DeltaTime;
 
-	AddActorWorldOffset(Translation);
+	AddActorWorldOffset(Translation, true);
 	UE_LOG(LogTemp, Warning, TEXT("Velocity: %s"),*Velocity.ToString());
 }
 
