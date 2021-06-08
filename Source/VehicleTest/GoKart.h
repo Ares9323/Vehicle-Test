@@ -32,4 +32,14 @@ private:
 
 	FVector Velocity;
 
+	// The mass of the car in kg
+	UPROPERTY(EditAnywhere, Category="Physics")
+	float Mass = 1000;
+
+	// The force applied to the car when throttle is fully down (N kg*m/s^2)
+	UPROPERTY(EditAnywhere, Category="Physics")
+	float MaxDrivingForce = 10000;
+
+	float Throttle;
+
 };
