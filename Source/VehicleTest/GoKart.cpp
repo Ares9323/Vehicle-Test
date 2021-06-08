@@ -32,10 +32,8 @@ void AGoKart::Tick(float DeltaTime)
 	//Velocity = InitialVelocity + Acceleration * Time
 	Velocity = Velocity + Acceleration * DeltaTime;
 
-	//Space = Velocity * Time
-	FVector Translation = Velocity * 100 * DeltaTime;
+	UpdateLocationFromVelocity(DeltaTime);
 
-	AddActorWorldOffset(Translation, true);
 	UE_LOG(LogTemp, Warning, TEXT("Velocity: %s"),*Velocity.ToString());
 }
 
@@ -52,3 +50,17 @@ void AGoKart::MoveForward(float Value)
 	Throttle = Value;
 }
 
+void AGoKart::UpdateLocationFromVelocity(float DeltaTime)
+{
+	//Space = Velocity * Time
+	FVector Translation = Velocity * 100 * DeltaTime;
+
+	FHitResult Hit;
+	AddActorWorldOffset(Translation, true, &Hit);
+
+	//Set velocity to zero if hit is blocking movement
+	if(Hit.IsValidBlockingHit())
+	{
+		Velocity = FVector::ZeroVector;
+	}
+}

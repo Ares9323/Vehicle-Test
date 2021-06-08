@@ -30,6 +30,8 @@ public:
 private:
 	void MoveForward(float Value);
 
+	void UpdateLocationFromVelocity(float DeltaTime);
+
 	FVector Velocity;
 
 	// The mass of the car in kg
