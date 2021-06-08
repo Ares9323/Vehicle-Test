@@ -15,6 +15,10 @@ public:
 	// Sets default values for this pawn's properties
 	AGoKart();
 
+	// Update frequency
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Settings")
+	int32 RefreshFreq = 1;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -42,8 +46,6 @@ private:
 	void UpdateLocationFromVelocity(float DeltaTime);
 	void ApplyRotation(float DeltaTime);
 
-	FVector Velocity;
-
 	// The fluid drag coefficient (kg*m)
 	UPROPERTY(EditAnywhere, Category="Physics")
 	float DragCoefficient = 16;
@@ -68,13 +70,19 @@ private:
 	UPROPERTY(EditAnywhere, Category="Physics")
 	float MinTurningRadius = 10;
 
+	UPROPERTY(Replicated)
+	FVector Velocity;
+
 	UPROPERTY(ReplicatedUsing=OnRep_ReplicatedTransform)
 	FTransform ReplicatedTransform;
 
 	UFUNCTION()
 	void OnRep_ReplicatedTransform();
 
+	UPROPERTY(Replicated)
 	float Throttle;
+
+	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 };

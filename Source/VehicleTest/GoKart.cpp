@@ -23,7 +23,7 @@ void AGoKart::BeginPlay()
 
 	if(HasAuthority())
 	{
-		NetUpdateFrequency = 5;
+		NetUpdateFrequency = RefreshFreq;
 	}
 }
 
@@ -31,6 +31,9 @@ void AGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&OutLifetimePr
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AGoKart,ReplicatedTransform);
+	DOREPLIFETIME(AGoKart,Velocity);
+	DOREPLIFETIME(AGoKart,Throttle);
+	DOREPLIFETIME(AGoKart,SteeringThrow);
 }
 
 FString GetEnumText(ENetRole Role)
@@ -160,7 +163,6 @@ void AGoKart::ApplyRotation(float DeltaTime)
 
 	AddActorWorldRotation(RotationDelta);
 }
-
 
 void AGoKart::OnRep_ReplicatedTransform()
 {
