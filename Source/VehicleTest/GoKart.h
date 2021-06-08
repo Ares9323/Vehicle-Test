@@ -29,8 +29,10 @@ public:
 
 private:
 	void MoveForward(float Value);
+	void MoveRight(float Value);
 
 	void UpdateLocationFromVelocity(float DeltaTime);
+	void ApplyRotation(float DeltaTime);
 
 	FVector Velocity;
 
@@ -42,6 +44,11 @@ private:
 	UPROPERTY(EditAnywhere, Category="Physics")
 	float MaxDrivingForce = 10000;
 
+	// The number of degrees rotated per second at full control throw (degrees/2)
+	UPROPERTY(EditAnywhere, Category="Physics")
+	float MaxSteeringDegrees = 30;
+
 	float Throttle;
+	float SteeringThrow;
 
 };
