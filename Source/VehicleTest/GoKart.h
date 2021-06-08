@@ -31,10 +31,19 @@ private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
+	FVector GetFluidResistance();
 	void UpdateLocationFromVelocity(float DeltaTime);
 	void ApplyRotation(float DeltaTime);
 
 	FVector Velocity;
+
+	// The fluid drag coefficient (kg*m)
+	UPROPERTY(EditAnywhere, Category="Physics")
+	float DragCoefficient = 16;
+
+	// The fluid drag coefficient
+	UPROPERTY(EditAnywhere, Category="Physics")
+	FVector FluidResistance;
 
 	// The mass of the car in kg
 	UPROPERTY(EditAnywhere, Category="Physics")
