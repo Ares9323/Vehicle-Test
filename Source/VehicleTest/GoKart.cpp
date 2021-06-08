@@ -3,6 +3,7 @@
 
 #include "GoKart.h"
 #include "Components/InputComponent.h"
+#include "Engine/World.h"
 
 // Sets default values
 AGoKart::AGoKart()
@@ -26,7 +27,9 @@ void AGoKart::Tick(float DeltaTime)
 
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Throttle;
 
+	//Drag force of the fluid
 	Force += GetFluidResistance();
+	Force += GetRollingResistance();
 
 	//Acceleration = Force / Mass
 	FVector Acceleration = Force / Mass;
@@ -63,6 +66,13 @@ void AGoKart::MoveRight(float Value)
 FVector AGoKart::GetFluidResistance()
 {
 	return - Velocity.GetSafeNormal() * Velocity.SizeSquared() * DragCoefficient;
+}
+
+FVector AGoKart::GetRollingResistance()
+{
+	float AccelerationDueToGravity = -GetWorld()->GetGravityZ() / 100;
+	float NormalForce = Mass * AccelerationDueToGravity;
+	return - Velocity.GetSafeNormal() * RollingResistanceCoefficient * NormalForce;
 }
 
 void AGoKart::UpdateLocationFromVelocity(float DeltaTime)

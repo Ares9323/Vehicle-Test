@@ -32,6 +32,7 @@ private:
 	void MoveRight(float Value);
 
 	FVector GetFluidResistance();
+	FVector GetRollingResistance();
 	void UpdateLocationFromVelocity(float DeltaTime);
 	void ApplyRotation(float DeltaTime);
 
@@ -40,6 +41,10 @@ private:
 	// The fluid drag coefficient (kg*m)
 	UPROPERTY(EditAnywhere, Category="Physics")
 	float DragCoefficient = 16;
+
+	// The rolling resistance coefficient of ordinary cars on concrete
+	UPROPERTY(EditAnywhere, Category="Physics")
+	float RollingResistanceCoefficient = 0.015;
 
 	// The fluid drag coefficient
 	UPROPERTY(EditAnywhere, Category="Physics")
