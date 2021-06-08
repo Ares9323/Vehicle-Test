@@ -72,10 +72,7 @@ private:
 	void MoveRight(float Value);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveForward(float Value);
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_MoveRight(float Value);
+	void Server_SendMove(FGoKartMove Move);
 
 	FVector GetFluidResistance();
 	FVector GetRollingResistance();
@@ -106,14 +103,14 @@ private:
 	UPROPERTY(EditAnywhere, Category="Physics")
 	float MinTurningRadius = 10;
 
-	UPROPERTY(Replicated)
-	FVector Velocity;
-
-	UPROPERTY(ReplicatedUsing=OnRep_ReplicatedTransform)
-	FTransform ReplicatedTransform;
+	UPROPERTY(ReplicatedUsing=OnRep_RepServerState)
+	FGoKartState ServerState;
 
 	UFUNCTION()
-	void OnRep_ReplicatedTransform();
+	void OnRep_RepServerState();
+
+	UPROPERTY()
+	FVector Velocity;
 
 	UPROPERTY(Replicated)
 	float Throttle;
