@@ -86,25 +86,28 @@ void UGoKartReplicationComponent::ClientTick(float DeltaTime)
 {
 	ClientTimeSinceUpdate += DeltaTime;
 	if(ClientTimeBetweenLastUpdates < KINDA_SMALL_NUMBER) return;
+	if(MovementComponent == nullptr) return;
 
 	float LerpRatio = ClientTimeSinceUpdate/ClientTimeBetweenLastUpdates;
+	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
 
-	FTransform TargetTransform = ServerState.Transform;
-	FTransform StarTransform = ClientStartTransform;
-	FTransform NewTransform;
-	NewTransform.SetLocation(FMath::LerpStable(StarTransform.GetLocation(),TargetTransform.GetLocation(),LerpRatio));
-	NewTransform.SetRotation(FQuat::Slerp(StarTransform.GetRotation(),TargetTransform.GetRotation(),LerpRatio));
-	GetOwner()->SetActorTransform(NewTransform);
+	FVector TargetLocation = ServerState.Transform.GetLocation();
+	FVector StartLocation = ClientStartLocation;
+	FQuat TargetRotation = ServerState.Transform.GetRotation();
+	FQuat StartRotation = ClientStartRotation;
 
-//	FVector TargetLocation = ServerState.Transform.GetLocation();
-//	FVector StartLocation = ClientStartTransform.GetLocation();
-//	FVector NewLocation = FMath::LerpStable(StartLocation,TargetLocation,LerpRatio);
-//	FQuat TargetRotation = ServerState.Transform.GetRotation();
-//	FQuat StartRotation = ClientStartTransform.GetRotation();
-//	FQuat NewRotation = FQuat::Slerp(StartRotation,TargetRotation,LerpRatio);
-//	GetOwner()->SetActorLocation(NewLocation);
-//	GetOwner()->SetActorRotation(NewRotation);
+// Derivative interpolation
 
+	FVector StartDerivative = ClientStartVelocity * VelocityToDerivative;
+	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
+	FVector NewLocation = FMath::CubicInterp(StartLocation,StartDerivative,TargetLocation,TargetDerivative,LerpRatio);
+	FVector NewDerivative = FMath::CubicInterpDerivative(StartLocation,StartDerivative,TargetLocation,TargetDerivative,LerpRatio);
+	FVector NewVelocity = NewDerivative / VelocityToDerivative;
+	FQuat NewRotation = FQuat::Slerp(StartRotation,TargetRotation,LerpRatio);
+
+	MovementComponent->SetVelocity(NewVelocity);
+	GetOwner()->SetActorLocation(NewLocation);
+	GetOwner()->SetActorRotation(NewRotation);
 }
 
 void UGoKartReplicationComponent::Server_SendMove_Implementation(FGoKartMove Move)
@@ -151,8 +154,11 @@ void UGoKartReplicationComponent::AutonomousProxy_OnRep_RepServerState()
 
 void UGoKartReplicationComponent::SimulatedProxy_OnRep_RepServerState()
 {
+	if(MovementComponent == nullptr) return;
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
 
-	ClientStartTransform = GetOwner()->GetActorTransform();
+	ClientStartRotation = GetOwner()->GetActorTransform().GetRotation();
+	ClientStartLocation = GetOwner()->GetActorLocation();
+	ClientStartVelocity = MovementComponent->GetVelocity();
 }
