@@ -91,23 +91,28 @@ void UGoKartReplicationComponent::ClientTick(float DeltaTime)
 	float LerpRatio = ClientTimeSinceUpdate/ClientTimeBetweenLastUpdates;
 	float VelocityToDerivative = ClientTimeBetweenLastUpdates * 100;
 
+// Get values from Transform
 	FVector TargetLocation = ServerState.Transform.GetLocation();
-	FVector StartLocation = ClientStartLocation;
+	FVector StartLocation = ClientStartTransform.GetLocation();
 	FQuat TargetRotation = ServerState.Transform.GetRotation();
-	FQuat StartRotation = ClientStartRotation;
+	FQuat StartRotation = ClientStartTransform.GetRotation();
 
 // Derivative interpolation
 
 	FVector StartDerivative = ClientStartVelocity * VelocityToDerivative;
 	FVector TargetDerivative = ServerState.Velocity * VelocityToDerivative;
-	FVector NewLocation = FMath::CubicInterp(StartLocation,StartDerivative,TargetLocation,TargetDerivative,LerpRatio);
 	FVector NewDerivative = FMath::CubicInterpDerivative(StartLocation,StartDerivative,TargetLocation,TargetDerivative,LerpRatio);
 	FVector NewVelocity = NewDerivative / VelocityToDerivative;
 	FQuat NewRotation = FQuat::Slerp(StartRotation,TargetRotation,LerpRatio);
 
+	FTransform NewTransform;
+	NewTransform.SetRotation(FQuat::Slerp(StartRotation,TargetRotation,LerpRatio));
+	NewTransform.SetLocation(FMath::CubicInterp(StartLocation,StartDerivative,TargetLocation,TargetDerivative,LerpRatio));
+
+// Set Transform and Velocity
+	GetOwner()->SetActorTransform(NewTransform);
 	MovementComponent->SetVelocity(NewVelocity);
-	GetOwner()->SetActorLocation(NewLocation);
-	GetOwner()->SetActorRotation(NewRotation);
+
 }
 
 void UGoKartReplicationComponent::Server_SendMove_Implementation(FGoKartMove Move)
@@ -158,7 +163,6 @@ void UGoKartReplicationComponent::SimulatedProxy_OnRep_RepServerState()
 	ClientTimeBetweenLastUpdates = ClientTimeSinceUpdate;
 	ClientTimeSinceUpdate = 0;
 
-	ClientStartRotation = GetOwner()->GetActorTransform().GetRotation();
-	ClientStartLocation = GetOwner()->GetActorLocation();
+	ClientStartTransform = GetOwner()->GetActorTransform();
 	ClientStartVelocity = MovementComponent->GetVelocity();
 }
