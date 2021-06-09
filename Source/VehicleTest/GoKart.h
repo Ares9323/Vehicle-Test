@@ -4,26 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "GoKartMovementComponent.h"
 #include "GoKart.generated.h"
-
-USTRUCT()
-struct FGoKartMove
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY()
-	float Throttle;
-
-	UPROPERTY()
-	float SteeringThrow;
-
-	UPROPERTY()
-	float DeltaTime;
-
-	UPROPERTY()
-	float TimeStamp;
-
-};
 
 USTRUCT()
 struct FGoKartState
@@ -75,39 +57,7 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FGoKartMove Move);
 
-	void SimulateMove(const FGoKartMove& Move);
-
-	FGoKartMove CreateMove(float DeltaTime);
 	void ClearAcknowledgeMoves(FGoKartMove LastMove);
-
-	FVector GetFluidResistance();
-	FVector GetRollingResistance();
-	void UpdateLocationFromVelocity(float DeltaTime);
-	void ApplyRotation(float DeltaTime, float SteeringThrow);
-
-	// The fluid drag coefficient (kg*m)
-	UPROPERTY(EditAnywhere, Category="Physics")
-	float DragCoefficient = 16;
-
-	// The rolling resistance coefficient of ordinary cars on concrete
-	UPROPERTY(EditAnywhere, Category="Physics")
-	float RollingResistanceCoefficient = 0.015;
-
-	// The fluid drag coefficient
-	UPROPERTY(EditAnywhere, Category="Physics")
-	FVector FluidResistance;
-
-	// The mass of the car in kg
-	UPROPERTY(EditAnywhere, Category="Physics")
-	float Mass = 1000;
-
-	// The force applied to the car when throttle is fully down (N kg*m/s^2)
-	UPROPERTY(EditAnywhere, Category="Physics")
-	float MaxDrivingForce = 10000;
-
-	// The minimum radius of the car turning circle at full lock (m)
-	UPROPERTY(EditAnywhere, Category="Physics")
-	float MinTurningRadius = 10;
 
 	UPROPERTY(ReplicatedUsing=OnRep_RepServerState)
 	FGoKartState ServerState;
@@ -115,12 +65,9 @@ private:
 	UFUNCTION()
 	void OnRep_RepServerState();
 
-	UPROPERTY()
-	FVector Velocity;
-
-	float Throttle;
-	float SteeringThrow;
-
 	TArray<FGoKartMove> UnacknowledgedMoves;
+
+	UPROPERTY(EditAnywhere)
+	UGoKartMovementComponent* MovementComponent;
 
 };
