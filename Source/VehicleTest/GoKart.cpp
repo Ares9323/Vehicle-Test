@@ -88,7 +88,7 @@ void AGoKart::MoveRight(float Value)
 	SteeringThrow = Value;
 }
 
-void AGoKart::SimulateMove(FGoKartMove Move)
+void AGoKart::SimulateMove(const FGoKartMove& Move)
 {
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
 
@@ -194,4 +194,8 @@ void AGoKart::OnRep_RepServerState()
 	//UE_LOG(LogTemp, Warning, TEXT("Replicated Transform"));
 	SetActorTransform(ServerState.Transform);
 	ClearAcknowledgeMoves(ServerState.LastMove);
+	for(const FGoKartMove& Move : UnacknowledgedMoves)
+	{
+		SimulateMove(Move);
+	}
 }
