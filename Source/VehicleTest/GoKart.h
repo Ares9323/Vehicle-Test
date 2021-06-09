@@ -78,6 +78,7 @@ private:
 	void SimulateMove(FGoKartMove Move);
 
 	FGoKartMove CreateMove(float DeltaTime);
+	void ClearAcknowledgeMoves(FGoKartMove LastMove);
 
 	FVector GetFluidResistance();
 	FVector GetRollingResistance();

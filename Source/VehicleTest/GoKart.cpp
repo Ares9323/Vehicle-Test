@@ -58,9 +58,11 @@ void AGoKart::Tick(float DeltaTime)
 	if(IsLocallyControlled()){
 
 		FGoKartMove Move = CreateMove(DeltaTime);
-		UnacknowledgedMoves.Add(Move);
 
-		UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
+		if(!HasAuthority()){
+			UnacknowledgedMoves.Add(Move);
+			UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
+		}
 
 		Server_SendMove(Move);
 		SimulateMove(Move);
@@ -116,9 +118,22 @@ FGoKartMove AGoKart::CreateMove(float DeltaTime)
 	Move.DeltaTime = DeltaTime;
 	Move.SteeringThrow = SteeringThrow;
 	Move.Throttle = Throttle;
-	//ToDo Move.TimeStamp = ???
+	Move.TimeStamp = GetWorld()->TimeSeconds;
 
 	return Move;
+}
+
+void AGoKart::ClearAcknowledgeMoves(FGoKartMove LastMove)
+{
+	TArray<FGoKartMove> NewMoves;
+	for(const FGoKartMove& Move : UnacknowledgedMoves)
+	{
+		if(Move.TimeStamp>LastMove.TimeStamp)
+		{
+			NewMoves.Add(Move);
+		}
+	}
+	UnacknowledgedMoves = NewMoves;
 }
 
 void AGoKart::Server_SendMove_Implementation(FGoKartMove Move)
@@ -178,4 +193,5 @@ void AGoKart::OnRep_RepServerState()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Replicated Transform"));
 	SetActorTransform(ServerState.Transform);
+	ClearAcknowledgeMoves(ServerState.LastMove);
 }
