@@ -62,10 +62,10 @@ void AGoKart::Tick(float DeltaTime)
 		if(!HasAuthority()){
 			UnacknowledgedMoves.Add(Move);
 			UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
+			SimulateMove(Move);
 		}
 
 		Server_SendMove(Move);
-		SimulateMove(Move);
 	}
 }
 
