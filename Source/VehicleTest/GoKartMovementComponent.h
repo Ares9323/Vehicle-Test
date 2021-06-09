@@ -53,10 +53,12 @@ public:
 	FORCEINLINE void SetVelocity(FVector Value) {Velocity = Value;}
 	FORCEINLINE FVector GetVelocity() {return Velocity;}
 
+	FORCEINLINE FGoKartMove GetLastMove() {return LastMove;}
+
 	void SimulateMove(const FGoKartMove& Move);
-	FGoKartMove CreateMove(float DeltaTime);
 
 private:
+	FGoKartMove CreateMove(float DeltaTime);
 
 	FVector GetFluidResistance();
 	FVector GetRollingResistance();
@@ -92,4 +94,6 @@ private:
 
 	float Throttle;
 	float SteeringThrow;
+
+	FGoKartMove LastMove;
 };

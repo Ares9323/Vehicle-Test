@@ -32,19 +32,18 @@ void UGoKartReplicationComponent::TickComponent(float DeltaTime, ELevelTick Tick
 
 	if(MovementComponent == nullptr) return;
 
-	if(GetOwner()->GetLocalRole() == ROLE_AutonomousProxy)
+	FGoKartMove LastMove = MovementComponent->GetLastMove();
+
+	if(GetOwnerRole() == ROLE_AutonomousProxy)
 	{
-		FGoKartMove Move = MovementComponent->CreateMove(DeltaTime);
-		MovementComponent->SimulateMove(Move);
-		UnacknowledgedMoves.Add(Move);
-		Server_SendMove(Move);
+		UnacknowledgedMoves.Add(LastMove);
+		Server_SendMove(LastMove);
 	}
 
 	//If we are the Server and in control of the Pawn
-	if(GetOwnerRole() == ROLE_Authority && GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
+	if(GetOwner()->GetRemoteRole() == ROLE_SimulatedProxy)
 	{
-		FGoKartMove Move = MovementComponent->CreateMove(DeltaTime);
-		Server_SendMove(Move);
+		UpdateServerState(LastMove);
 	}
 
 	//If we are the Simulated Proxy
@@ -76,15 +75,19 @@ void UGoKartReplicationComponent::ClearAcknowledgeMoves(FGoKartMove LastMove)
 	UnacknowledgedMoves = NewMoves;
 }
 
+void UGoKartReplicationComponent::UpdateServerState(const FGoKartMove& Move)
+{
+	ServerState.LastMove = Move;
+	ServerState.Transform = GetOwner()->GetActorTransform();
+	ServerState.Velocity = MovementComponent->GetVelocity();
+}
+
 void UGoKartReplicationComponent::Server_SendMove_Implementation(FGoKartMove Move)
 {
 	if(MovementComponent == nullptr) return;
 
 	MovementComponent->SimulateMove(Move);
-
-	ServerState.LastMove = Move;
-	ServerState.Transform = GetOwner()->GetActorTransform();
-	ServerState.Velocity = MovementComponent->GetVelocity();
+	UpdateServerState(Move);
 }
 
 bool UGoKartReplicationComponent::Server_SendMove_Validate(FGoKartMove Move)
