@@ -56,11 +56,11 @@ void AGoKart::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if(IsLocallyControlled()){
-		FGoKartMove Move;
-		Move.DeltaTime = DeltaTime;
-		Move.SteeringThrow = SteeringThrow;
-		Move.Throttle = Throttle;
-		//ToDo Move.TimeStamp = ???
+
+		FGoKartMove Move = CreateMove(DeltaTime);
+		UnacknowledgedMoves.Add(Move);
+
+		UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
 
 		Server_SendMove(Move);
 		SimulateMove(Move);
@@ -108,6 +108,17 @@ void AGoKart::SimulateMove(FGoKartMove Move)
 	//UE_LOG(LogTemp, Warning, TEXT("Velocity: %s"),*Velocity.ToString());
 
 	DrawDebugString(GetWorld(),FVector(0, 0, 100),GetEnumText(GetLocalRole()),this,FColor::White,DeltaTime);
+}
+
+FGoKartMove AGoKart::CreateMove(float DeltaTime)
+{
+	FGoKartMove Move;
+	Move.DeltaTime = DeltaTime;
+	Move.SteeringThrow = SteeringThrow;
+	Move.Throttle = Throttle;
+	//ToDo Move.TimeStamp = ???
+
+	return Move;
 }
 
 void AGoKart::Server_SendMove_Implementation(FGoKartMove Move)
