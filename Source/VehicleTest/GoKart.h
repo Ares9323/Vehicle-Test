@@ -68,16 +68,19 @@ public:
 
 
 private:
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_SendMove(FGoKartMove Move);
 
+	void SimulateMove(FGoKartMove Move);
+
 	FVector GetFluidResistance();
 	FVector GetRollingResistance();
 	void UpdateLocationFromVelocity(float DeltaTime);
-	void ApplyRotation(float DeltaTime);
+	void ApplyRotation(float DeltaTime, float SteeringThrow);
 
 	// The fluid drag coefficient (kg*m)
 	UPROPERTY(EditAnywhere, Category="Physics")
@@ -112,10 +115,7 @@ private:
 	UPROPERTY()
 	FVector Velocity;
 
-	UPROPERTY(Replicated)
 	float Throttle;
-
-	UPROPERTY(Replicated)
 	float SteeringThrow;
 
 };
