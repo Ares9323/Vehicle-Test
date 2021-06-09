@@ -55,18 +55,30 @@ void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(IsLocallyControlled()){
-
+	if(GetLocalRole() == ROLE_AutonomousProxy)
+	{
 		FGoKartMove Move = CreateMove(DeltaTime);
-
-		if(!HasAuthority()){
-			UnacknowledgedMoves.Add(Move);
-			UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
-			SimulateMove(Move);
-		}
-
+		SimulateMove(Move);
+		UnacknowledgedMoves.Add(Move);
 		Server_SendMove(Move);
 	}
+
+	//If we are the Server and in control of the Pawn
+	if(GetLocalRole() == ROLE_Authority && GetRemoteRole() == ROLE_SimulatedProxy)
+	{
+		FGoKartMove Move = CreateMove(DeltaTime);
+		Server_SendMove(Move);
+	}
+
+	//If we are the Simulated Proxy
+	if(GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		Server_SendMove(ServerState.LastMove);
+	}
+
+	DrawDebugString(GetWorld(),FVector(0, 0, 100),GetEnumText(GetLocalRole()),this,FColor::White,DeltaTime);
+	UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
+
 }
 
 // Called to bind functionality to input
@@ -108,8 +120,6 @@ void AGoKart::SimulateMove(const FGoKartMove& Move)
 	UpdateLocationFromVelocity(DeltaTime);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Velocity: %s"),*Velocity.ToString());
-
-	DrawDebugString(GetWorld(),FVector(0, 0, 100),GetEnumText(GetLocalRole()),this,FColor::White,DeltaTime);
 }
 
 FGoKartMove AGoKart::CreateMove(float DeltaTime)
