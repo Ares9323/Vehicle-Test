@@ -52,7 +52,8 @@ void UGoKartReplicationComponent::TickComponent(float DeltaTime, ELevelTick Tick
 		ClientTick(DeltaTime);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("Queue length: %d"), UnacknowledgedMoves.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("Throttle: %f"), MovementComponent->GetThrottle());
 }
 
 
@@ -140,14 +141,26 @@ void UGoKartReplicationComponent::Server_SendMove_Implementation(FGoKartMove Mov
 {
 	if(MovementComponent == nullptr) return;
 
+	ClientSimulatedTime += Move.DeltaTime;
 	MovementComponent->SimulateMove(Move);
 	UpdateServerState(Move);
 }
 
 bool UGoKartReplicationComponent::Server_SendMove_Validate(FGoKartMove Move)
 {
-	if(MovementComponent == nullptr) return false;
-	return FMath::Abs(MovementComponent->GetThrottle()) <=1 && FMath::Abs(MovementComponent->GetSteeringThrow()) <=1;
+	float ProposedTime = ClientSimulatedTime + Move.DeltaTime;
+	bool ClientNotRunningAhead = ProposedTime < GetWorld()->TimeSeconds;
+	if(!ClientNotRunningAhead)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Client is running too fast!"));
+		return false;
+	}
+	if(!Move.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Received invalid move!"));
+		return false;
+	}
+	return true;
 }
 
 void UGoKartReplicationComponent::OnRep_RepServerState()
